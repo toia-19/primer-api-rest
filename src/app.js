@@ -1,10 +1,10 @@
-const express = require('express');
-const morgan = require('morgan');
-const cors = require('cors');
+const express = require('express'); // crea el servidor
+const morgan = require('morgan'); // librería de peticiones - confirma comunicacion con API
+const cors = require('cors'); // permite la comunicación entre servicios que corren por diferentes puertos
 
-// Inicializamos el servicio
+// Inicializamos el servicio web
 const app = express();
-const port = 3000;
+const port = 3000; // guiamos por dónde ingresará o recibiremos la información
 
 // Middlewares
 app.use(cors());
