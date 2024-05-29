@@ -1,23 +1,17 @@
 const express = require('express'); // crea el servidor
 const morgan = require('morgan'); // librería de peticiones - confirma comunicacion con API
 const cors = require('cors'); // permite la comunicación entre servicios que corren por diferentes puertos
+const { Sequelize } = require('sequelize'); // conexión a la base de datos
 
 // Inicializamos el servicio web
 const app = express();
 const port = 3000; // guiamos por dónde ingresará o recibiremos la información
 
-// Middlewares
+// Middlewares -> funciones que se ejecutan entre petición y respuesta que vamos a dar
 app.use(cors());
 app.use(morgan());
 app.use(express.json())
 
-// Definimos nuestras routes
-app.get('/', (req, res) => {
-    res.status(200).json({
-        ok: true,
-        msg: "¡Hola!, Estás accediendo a la super API del profe Ale :)"
-    });
-});
 
 // Creamos colección de usuarios
 const listUser = [
@@ -45,7 +39,20 @@ const listUser = [
         hincha: 'Cipolletti',
         role: 'USER'
     }
-]
+];
+
+// Definimos nuestras routes
+app.get('/', (req, res) => {
+    res.status(200).json({
+        ok: true,
+        msg: "¡Hola!, Estás accediendo a la super API del profe Ale :)"
+    });
+});
+
+//############################################################################################
+//ORM Sequaliaze -> creamos un modelo que es una tabla y nos permite modificarlo como un objeto
+//ademas de hacer el CRUD, nos permite definir un módelo con tablas y registros con Entidades
+// algo que mapee un objeto y que yo pueda manipular
 
 // Enlistamos todos los usuarios actuales.
 app.get('/users', (req, res) => {
@@ -108,7 +115,7 @@ app.get('/users/find', (req, res) => {
 
 });
 
-// Crear nuevo usuario
+// CREAR NUEVO USUARIO
 app.post('/users/create', (req, res) => {
     // Descontructuración de un objeto
     const { name, lastname, age, hincha, role } = req.body;
