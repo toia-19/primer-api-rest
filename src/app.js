@@ -12,34 +12,52 @@ app.use(cors());
 app.use(morgan());
 app.use(express.json())
 
-
-// Creamos colección de usuarios
-const listUser = [
-    {
-        id: 1,
-        name: 'Melina',
-        lastname: 'Ulloa',
-        age: 26,
-        hincha: 'Boca',
-        role: 'ADMIN'
-    },
-    {
-        id: 2,
-        name: 'Maia',
-        lastname: 'Aedo',
-        age: 19,
-        hincha: 'River',
-        role: 'USER'
-    },
-    {
-        id: 3,
-        name: 'Lucas',
-        lastname: 'Azocar',
-        age: 20,
-        hincha: 'Cipolletti',
-        role: 'USER'
+// ############# CONEXIÓN CON LA BASE DE DATOS por nombre de base de datos, usuario y contraseña ###################
+const sequelize = new Sequelize (
+    'cursonode',
+    'root',
+    '',{
+        host: 'localhost',
+        dialect: 'mysql'
     }
-];
+);
+
+(async()=>{
+    try{
+        await sequelize.authenticate();
+        console.log('Conexión a la base de datos establecida correctamente.');
+    } catch (error){
+        console.error('Error al conectar a la base de datos:', error);
+    }
+})();
+// ################## FIN CONFIGURACIÓN A BASE DE DATOS ####################
+
+// Definimos nuestro MODELO y su estructura / realizamos las importaciones
+const { DataTypes } = require('sequelize');
+const User = sequelize.define('users', {
+    nroDocumento:{
+        type: DataTypes.INTEGER(8),
+        primaryKey: true // definimos clave primaria
+    },
+    firstName:{
+        type: DataTypes.STRING (10), // definimos el tipo
+        allowNull: false // definimos que no sea nulo
+    },
+    lastName:{
+        type: DataTypes.STRING (10),
+        allowNull: false
+    }
+});
+
+// Sincronizamos el modelo con la Base de Datos
+(async ()=>{
+    try{
+        await sequelize.sync();
+        console.log("Modelo sincronizado con la Base de Datos");
+    } catch (error){
+        console.log('Error al sincronizar con la Base de Datos: '+error);
+    }
+})
 
 // Definimos nuestras routes
 app.get('/', (req, res) => {
@@ -97,9 +115,9 @@ app.get('/users/find', (req, res) => {
     const lastname = query.lastname;
     */
 
-    const { name, lastname } = query; // -> + específico
+    const { nroDocumento, lastName } = query; // -> + específico
 
-    const result = listUser.find((user) => user.name === name && user.lastname === lastname);
+    const result = listUser.find((user) => user.nroDocumento === name && user.lastName === lastName);
 
     if (result) {
         res.status(200).json({
@@ -116,29 +134,23 @@ app.get('/users/find', (req, res) => {
 });
 
 // CREAR NUEVO USUARIO
-app.post('/users/create', (req, res) => {
+app.post('/users/create', async (req, res) => {
     // Descontructuración de un objeto
-    const { name, lastname, age, hincha, role } = req.body;
+    const { nroDocumento, firstName, lastName } = req.body;
 
-    /*
-    listUser.push(req.body);
-    listUser = [... listUser, req.body]
-    listUser.push({... req.body, name: 'Ana'})
-    listUser = [... listUser, {... req.body, name: 'Ana'}]
-    */
-
-    const id = listUser[listUser.length - 1].id + 1;
-
-    const newUser = { ...req.body, id };
-
-    listUser.push(newUser);
-
-    res.status(201).json({
-        ok: true,
-        msg: "¡Usuario agregado con éxito!",
-        newUser
-    });
-
+    try{
+        const newUser = await User.create(req.body);
+        res.status(201).json({
+            ok: true, // indicamos que todo va bien
+            msg: 'Usuario creado con éxito',
+            newUser
+        })
+    } catch (error){
+        res.status(500).json({
+            ok: false,
+            error: "Error al crear usuario:"+error
+        })
+    }
 });
 
 // Editar un usuario
